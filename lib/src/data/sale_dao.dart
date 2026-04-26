@@ -1,13 +1,9 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/report_models.dart';
 import '../models/sale.dart';
 import '../models/sale_item.dart';
+import '../platform/platform_storage.dart';
 
 class InsufficientStockException implements Exception {
   const InsufficientStockException(this.productId);
@@ -128,14 +124,6 @@ class SaleDao {
       ORDER BY s.timestamp DESC
     ''');
 
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File(
-      p.join(
-        dir.path,
-        'daily_report_${DateTime.now().millisecondsSinceEpoch}.csv',
-      ),
-    );
-
     final lines = <String>[
       'sale_id,timestamp,payment_method,total_amount,tax_amount,discount_amount',
       ...rows.map((row) {
@@ -150,9 +138,9 @@ class SaleDao {
       }),
     ];
 
-    await file.writeAsString(lines.join('\n'));
-    return file.path;
+    return writeCsvToAppStorage(
+      'daily_report_${DateTime.now().millisecondsSinceEpoch}.csv',
+      lines.join('\n'),
+    );
   }
-
- 
 }

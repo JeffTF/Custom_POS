@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +13,15 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+  final isDesktop =
+      !kIsWeb &&
+      <TargetPlatform>{
+        TargetPlatform.windows,
+        TargetPlatform.linux,
+        TargetPlatform.macOS,
+      }.contains(defaultTargetPlatform);
+
+  if (isDesktop) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }

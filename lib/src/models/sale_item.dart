@@ -15,6 +15,22 @@ class SaleItem {
 
   double get lineTotal => quantity * unitPrice;
 
+  SaleItem copyWith({
+    int? id,
+    int? saleId,
+    int? productId,
+    int? quantity,
+    double? unitPrice,
+  }) {
+    return SaleItem(
+      id: id ?? this.id,
+      saleId: saleId ?? this.saleId,
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      unitPrice: unitPrice ?? this.unitPrice,
+    );
+  }
+
   factory SaleItem.fromMap(Map<String, Object?> map) {
     return SaleItem(
       id: map['id'] as int?,

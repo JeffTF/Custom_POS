@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -5,6 +6,7 @@ import '../data/category_dao.dart';
 import '../data/database_helper.dart';
 import '../data/product_dao.dart';
 import '../data/sale_dao.dart';
+import '../data/web_demo_store.dart';
 import '../models/cart_item.dart';
 import '../models/category.dart';
 import '../models/product.dart';
@@ -35,6 +37,10 @@ final imageServiceProvider = Provider<ImageService>((ref) {
   return ImageService(ImagePicker());
 });
 
+final webDemoStoreProvider = Provider<WebDemoStore>((ref) {
+  return WebDemoStore();
+});
+
 final productFilterProvider =
     StateNotifierProvider<ProductFilterController, ProductFilterState>((ref) {
       return ProductFilterController();
@@ -44,11 +50,22 @@ final appModeProvider = StateProvider<AppMode>((ref) => AppMode.staff);
 final taxRateProvider = StateProvider<double>((ref) => 0.07);
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
+  if (kIsWeb) {
+    return ref.watch(webDemoStoreProvider).fetchCategories();
+  }
   return ref.watch(categoryDaoProvider).fetchCategories();
 });
 
 final productsProvider = FutureProvider<List<Product>>((ref) async {
   final filter = ref.watch(productFilterProvider);
+  if (kIsWeb) {
+    return ref
+        .watch(webDemoStoreProvider)
+        .fetchProducts(
+          categoryId: filter.categoryId,
+          searchQuery: filter.searchQuery,
+        );
+  }
   return ref
       .watch(productDaoProvider)
       .fetchProducts(
@@ -58,20 +75,32 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
 });
 
 final lowStockProductsProvider = FutureProvider<List<Product>>((ref) async {
+  if (kIsWeb) {
+    return ref.watch(webDemoStoreProvider).fetchLowStockProducts();
+  }
   return ref.watch(productDaoProvider).fetchLowStockProducts();
 });
 
 final dailySummaryProvider = FutureProvider<DailySalesSummary>((ref) async {
+  if (kIsWeb) {
+    return ref.watch(webDemoStoreProvider).fetchDailySummary();
+  }
   return ref.watch(saleDaoProvider).fetchDailySummary();
 });
 
 final topSellingProductsProvider = FutureProvider<List<TopSellingProduct>>((
   ref,
 ) async {
+  if (kIsWeb) {
+    return ref.watch(webDemoStoreProvider).fetchTopSellingProducts();
+  }
   return ref.watch(saleDaoProvider).fetchTopSellingProducts();
 });
 
 final hourlySalesProvider = FutureProvider<List<HourlySalesPoint>>((ref) async {
+  if (kIsWeb) {
+    return ref.watch(webDemoStoreProvider).fetchHourlyBreakdown();
+  }
   return ref.watch(saleDaoProvider).fetchHourlyBreakdown();
 });
 
@@ -230,12 +259,12 @@ class CartController extends StateNotifier<CartState> {
     );
 
     try {
-      await _ref
-          .read(saleDaoProvider)
-          .processSale(
-            sale,
-            state.items.map((item) => item.toSaleItem()).toList(),
-          );
+      final saleItems = state.items.map((item) => item.toSaleItem()).toList();
+      if (kIsWeb) {
+        await _ref.read(webDemoStoreProvider).processSale(sale, saleItems);
+      } else {
+        await _ref.read(saleDaoProvider).processSale(sale, saleItems);
+      }
       state = const CartState(
         items: <CartItem>[],
         lastReceiptMessage: 'Sale completed successfully.',
@@ -270,7 +299,11 @@ class AdminActions {
   final Ref _ref;
 
   Future<void> saveProduct(Product product) async {
-    await _ref.read(productDaoProvider).upsert(product);
+    if (kIsWeb) {
+      await _ref.read(webDemoStoreProvider).upsertProduct(product);
+    } else {
+      await _ref.read(productDaoProvider).upsert(product);
+    }
     _ref.invalidate(productsProvider);
     _ref.invalidate(lowStockProductsProvider);
   }
@@ -279,13 +312,21 @@ class AdminActions {
     if (product.id == null) {
       return;
     }
-    await _ref.read(productDaoProvider).softDelete(product.id!);
+    if (kIsWeb) {
+      await _ref.read(webDemoStoreProvider).softDeleteProduct(product.id!);
+    } else {
+      await _ref.read(productDaoProvider).softDelete(product.id!);
+    }
     _ref.invalidate(productsProvider);
     _ref.invalidate(lowStockProductsProvider);
   }
 
   Future<void> saveCategory(Category category) async {
-    await _ref.read(categoryDaoProvider).upsert(category);
+    if (kIsWeb) {
+      await _ref.read(webDemoStoreProvider).upsertCategory(category);
+    } else {
+      await _ref.read(categoryDaoProvider).upsert(category);
+    }
     _ref.invalidate(categoriesProvider);
     _ref.invalidate(productsProvider);
   }
@@ -294,12 +335,19 @@ class AdminActions {
     if (category.id == null) {
       return;
     }
-    await _ref.read(categoryDaoProvider).delete(category.id!);
+    if (kIsWeb) {
+      await _ref.read(webDemoStoreProvider).deleteCategory(category.id!);
+    } else {
+      await _ref.read(categoryDaoProvider).delete(category.id!);
+    }
     _ref.invalidate(categoriesProvider);
     _ref.invalidate(productsProvider);
   }
 
   Future<String> exportReportCsv() async {
+    if (kIsWeb) {
+      return _ref.read(webDemoStoreProvider).exportDailyReportCsv();
+    }
     return _ref.read(saleDaoProvider).exportDailyReportCsv();
   }
 }

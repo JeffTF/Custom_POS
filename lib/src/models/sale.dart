@@ -19,6 +19,26 @@ class Sale {
   final DateTime? timestamp;
   final bool isCompleted;
 
+  Sale copyWith({
+    int? id,
+    double? totalAmount,
+    double? taxAmount,
+    double? discountAmount,
+    PaymentMethod? paymentMethod,
+    DateTime? timestamp,
+    bool? isCompleted,
+  }) {
+    return Sale(
+      id: id ?? this.id,
+      totalAmount: totalAmount ?? this.totalAmount,
+      taxAmount: taxAmount ?? this.taxAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      timestamp: timestamp ?? this.timestamp,
+      isCompleted: isCompleted ?? this.isCompleted,
+    );
+  }
+
   factory Sale.fromMap(Map<String, Object?> map) {
     return Sale(
       id: map['id'] as int?,

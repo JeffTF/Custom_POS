@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart' hide Category;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import '../models/category.dart';
 import 'seed_data.dart';
@@ -21,7 +19,7 @@ class DatabaseHelper {
     return _database!;
   }
 
-  Future<Database> _openDatabase() async { 
+  Future<Database> _openDatabase() async {
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, _dbName);
 

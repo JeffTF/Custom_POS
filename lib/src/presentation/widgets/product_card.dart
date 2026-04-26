@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../../models/product.dart';
+import '../../platform/platform_image_provider.dart';
 import '../utils/formatters.dart';
 
 class ProductCard extends StatelessWidget {
@@ -116,15 +115,14 @@ class _ProductVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (product.imagePath case final String path
-        when path.isNotEmpty && File(path).existsSync()) {
+    final provider = imageProviderForPath(product.imagePath);
+    if (provider != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.file(
-          File(path),
+        child: Image(
+          image: provider,
           fit: BoxFit.cover,
-          cacheWidth: 320,
-          cacheHeight: 220,
+          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
         ),
       );
     }

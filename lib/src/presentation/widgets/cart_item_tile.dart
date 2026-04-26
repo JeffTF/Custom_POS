@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../../models/cart_item.dart';
+import '../../platform/platform_image_provider.dart';
 import '../utils/formatters.dart';
 
 class CartItemTile extends StatelessWidget {
@@ -101,24 +100,27 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = imagePath;
+    final provider = imageProviderForPath(imagePath);
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
         width: 54,
         height: 54,
-        child: image != null && image.isNotEmpty && File(image).existsSync()
-            ? Image.file(
-                File(image),
+        child: provider != null
+            ? Image(
+                image: provider,
                 fit: BoxFit.cover,
-                cacheWidth: 108,
-                cacheHeight: 108,
+                errorBuilder: (context, error, stackTrace) => _placeholder(),
               )
-            : Container(
-                color: const Color(0xFFDCEFEA),
-                child: const Icon(Icons.shopping_bag_outlined),
-              ),
+            : _placeholder(),
       ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: const Color(0xFFDCEFEA),
+      child: const Icon(Icons.shopping_bag_outlined),
     );
   }
 }
